@@ -1,5 +1,5 @@
 {
-  "model_path": "best.pt",
+  "model_path": "../runs/detect/runs_cheating_detection/yolo11l_v5-2/weights/best.pt",
   "cheating_class_name": "Cheating",
   "conf_threshold": 0.45,
   "iou_threshold": 0.5,
