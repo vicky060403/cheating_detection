@@ -1,0 +1,12 @@
+{
+  "model_path": "best.pt",
+  "cheating_class_name": "Cheating",
+  "conf_threshold": 0.45,
+  "iou_threshold": 0.5,
+  "consecutive_frames_to_confirm": 5,
+  "alert_cooldown_seconds": 10,
+  "frame_width": 640,
+  "cameras": {
+    "Camera-1": 0
+  }
+}

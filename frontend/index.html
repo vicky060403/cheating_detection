@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Exam Monitoring — Cheating Detection</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Exam Monitoring Dashboard</h1>
+    <div class="status-pill" id="connectionStatus">connecting…</div>
+  </header>
+
+  <main class="layout">
+    <section class="cameras-panel">
+      <div class="panel-header">
+        <h2>Live Cameras</h2>
+        <button id="addCameraBtn" class="btn">+ Add Camera</button>
+      </div>
+      <div id="cameraGrid" class="camera-grid"></div>
+    </section>
+
+    <aside class="alerts-panel">
+      <div class="panel-header">
+        <h2>Cheating Alerts</h2>
+        <span id="alertCount" class="badge">0</span>
+      </div>
+      <div id="alertsList" class="alerts-list"></div>
+    </aside>
+  </main>
+
+  <div id="addCameraModal" class="modal hidden">
+    <div class="modal-box">
+      <h3>Add Camera</h3>
+      <label>Name<input id="newCamName" placeholder="e.g. Camera-2" /></label>
+      <label>Source<input id="newCamSource" placeholder="0, rtsp://..., or video.mp4" /></label>
+      <div class="modal-actions">
+        <button id="cancelAddCam" class="btn secondary">Cancel</button>
+        <button id="confirmAddCam" class="btn">Add</button>
+      </div>
+      <p id="addCamError" class="error"></p>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
