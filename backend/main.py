@@ -19,6 +19,7 @@ Run with:
 
 import os
 import json
+import sqlite3
 import time
 import asyncio
 import threading
@@ -31,7 +32,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from camera_worker import CameraWorker
+from camera_worker import CameraWorker, test_camera_source
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
@@ -39,9 +40,79 @@ FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
 with open(os.path.join(BASE_DIR, "config.json")) as f:
     CONFIG = json.load(f)
 
+if not os.path.isabs(CONFIG["model_path"]):
+    CONFIG["model_path"] = os.path.abspath(os.path.join(BASE_DIR, CONFIG["model_path"]))
+
+for camera_name, source in CONFIG.get("cameras", {}).items():
+    if isinstance(source, str) and not source.strip().isdigit() and not source.startswith(("rtsp://", "http://", "https://")):
+        if not os.path.isabs(source):
+            CONFIG["cameras"][camera_name] = os.path.abspath(os.path.join(BASE_DIR, source))
+
 CONFIG["snapshot_dir"] = os.path.join(BASE_DIR, "cheating_alerts", "snapshots")
 CONFIG["log_file"] = os.path.join(BASE_DIR, "cheating_alerts", "cheating_log.csv")
+CONFIG["database_file"] = os.path.join(BASE_DIR, "cheating_alerts", "alerts.db")
 os.makedirs(CONFIG["snapshot_dir"], exist_ok=True)
+os.makedirs(os.path.dirname(CONFIG["database_file"]), exist_ok=True)
+
+
+def initialize_database():
+    with sqlite3.connect(CONFIG["database_file"]) as connection:
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS alerts (
+                snapshot_file TEXT PRIMARY KEY,
+                camera TEXT NOT NULL,
+                confidence REAL NOT NULL,
+                timestamp TEXT NOT NULL,
+                verified INTEGER NOT NULL DEFAULT 0
+            )
+            """
+        )
+
+
+def save_alert(alert: dict):
+    with sqlite3.connect(CONFIG["database_file"]) as connection:
+        connection.execute(
+            """
+            INSERT OR IGNORE INTO alerts
+                (snapshot_file, camera, confidence, timestamp, verified)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                alert["snapshot_file"],
+                alert["camera"],
+                alert["confidence"],
+                alert["timestamp"],
+                int(alert.get("verified", False)),
+            ),
+        )
+
+
+def read_alerts(limit: int):
+    with sqlite3.connect(CONFIG["database_file"]) as connection:
+        connection.row_factory = sqlite3.Row
+        rows = connection.execute(
+            """
+            SELECT snapshot_file, camera, confidence, timestamp, verified
+            FROM alerts
+            ORDER BY timestamp DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    return [
+        {
+            "snapshot_file": row["snapshot_file"],
+            "camera": row["camera"],
+            "confidence": row["confidence"],
+            "timestamp": row["timestamp"],
+            "verified": bool(row["verified"]),
+        }
+        for row in rows
+    ]
+
+
+initialize_database()
 
 app = FastAPI(title="Exam Cheating Detection API")
 app.add_middleware(
@@ -57,6 +128,7 @@ model_lock = threading.Lock()
 
 workers: Dict[str, CameraWorker] = {}
 alerts_history: List[dict] = []
+verified_snapshots = set()
 MAX_HISTORY = 200
 
 connected_ws: List[WebSocket] = []
@@ -65,6 +137,8 @@ main_loop = None  # asyncio event loop, set on startup
 
 def broadcast_alert(alert: dict):
     """Called from a CameraWorker thread when cheating is confirmed."""
+    alert["verified"] = alert.get("snapshot_file") in verified_snapshots
+    save_alert(alert)
     alerts_history.insert(0, alert)
     del alerts_history[MAX_HISTORY:]
     if main_loop is not None:
@@ -87,6 +161,13 @@ def start_camera(name: str, source):
     worker = CameraWorker(name, source, model, model_lock, CONFIG, on_alert=broadcast_alert)
     worker.start()
     workers[name] = worker
+
+
+def persist_camera(name: str, source):
+    CONFIG.setdefault("cameras", {})[name] = source
+    with open(os.path.join(BASE_DIR, "config.json"), "w") as config_file:
+        json.dump(CONFIG, config_file, indent=2)
+        config_file.write("\n")
 
 
 @app.on_event("startup")
@@ -122,7 +203,23 @@ def add_camera(payload: dict = Body(...)):
     if name in workers:
         return JSONResponse({"error": "camera already exists"}, status_code=400)
     start_camera(name, source)
+    persist_camera(name, source)
     return {"status": "started", "name": name}
+
+
+@app.post("/api/cameras/test")
+def test_camera(payload: dict = Body(...)):
+    source = payload.get("source")
+    if source is None or (isinstance(source, str) and not source.strip()):
+        return JSONResponse({"error": "source is required"}, status_code=400)
+    if isinstance(source, str) and source.strip().isdigit():
+        source = int(source.strip())
+    if test_camera_source(source):
+        return {"connected": True}
+    return JSONResponse(
+        {"connected": False, "error": "Could not open or read from this camera source."},
+        status_code=422,
+    )
 
 
 @app.delete("/api/cameras/{name}")
@@ -131,6 +228,10 @@ def remove_camera(name: str):
     if not worker:
         return JSONResponse({"error": "camera not found"}, status_code=404)
     worker.stop()
+    CONFIG.get("cameras", {}).pop(name, None)
+    with open(os.path.join(BASE_DIR, "config.json"), "w") as config_file:
+        json.dump(CONFIG, config_file, indent=2)
+        config_file.write("\n")
     return {"status": "stopped", "name": name}
 
 
@@ -154,7 +255,23 @@ def video_feed(name: str):
 
 @app.get("/api/alerts")
 def get_alerts(limit: int = 50):
-    return alerts_history[:limit]
+    return read_alerts(max(1, min(limit, MAX_HISTORY)))
+
+
+@app.post("/api/alerts/{snapshot_file}/verify")
+def verify_alert(snapshot_file: str):
+    verified_snapshots.add(snapshot_file)
+    with sqlite3.connect(CONFIG["database_file"]) as connection:
+        cursor = connection.execute(
+            "UPDATE alerts SET verified = 1 WHERE snapshot_file = ?",
+            (snapshot_file,),
+        )
+    for alert in alerts_history:
+        if alert.get("snapshot_file") == snapshot_file:
+            alert["verified"] = True
+    if cursor.rowcount == 0:
+        return JSONResponse({"error": "snapshot not found"}, status_code=404)
+    return {"status": "verified", "snapshot_file": snapshot_file}
 
 
 @app.websocket("/ws/alerts")

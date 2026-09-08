@@ -16,6 +16,17 @@ from datetime import datetime
 import cv2
 
 
+def test_camera_source(source):
+    capture = cv2.VideoCapture(source)
+    try:
+        if not capture.isOpened():
+            return False
+        ok, _ = capture.read()
+        return ok
+    finally:
+        capture.release()
+
+
 class CameraWorker(threading.Thread):
     def __init__(self, name, source, model, model_lock, config, on_alert=None):
         super().__init__(daemon=True)

@@ -33,13 +33,28 @@
   <div id="addCameraModal" class="modal hidden">
     <div class="modal-box">
       <h3>Add Camera</h3>
-      <label>Name<input id="newCamName" placeholder="e.g. Camera-2" /></label>
-      <label>Source<input id="newCamSource" placeholder="0, rtsp://..., or video.mp4" /></label>
+      <label>Camera name<input id="newCamName" placeholder="e.g. Classroom-101" /></label>
+      <label>RTSP URL or source<input id="newCamSource" placeholder="rtsp://user:password@camera-ip:554/stream1" /></label>
       <div class="modal-actions">
         <button id="cancelAddCam" class="btn secondary">Cancel</button>
-        <button id="confirmAddCam" class="btn">Add</button>
+        <button id="testCameraBtn" class="btn secondary">Test connection</button>
+        <button id="confirmAddCam" class="btn">Add camera</button>
       </div>
       <p id="addCamError" class="error"></p>
+    </div>
+  </div>
+
+  <div id="snapshotModal" class="modal snapshot-modal hidden" role="dialog" aria-modal="true" aria-labelledby="snapshotTitle">
+    <div class="snapshot-box">
+      <div class="snapshot-header">
+        <h3 id="snapshotTitle">Alert snapshot</h3>
+        <button id="closeSnapshot" class="close-btn" type="button" aria-label="Close snapshot">&times;</button>
+      </div>
+      <img id="snapshotPreview" class="snapshot-preview" alt="Enlarged cheating alert snapshot" />
+      <div class="snapshot-actions">
+        <span id="snapshotStatus" class="snapshot-status"></span>
+        <button id="verifySnapshot" class="btn" type="button">Mark as verified</button>
+      </div>
     </div>
   </div>
 

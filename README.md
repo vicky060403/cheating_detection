@@ -58,6 +58,14 @@ Sources can be a webcam index, an RTSP/IP camera URL, or a video file path
 (useful for testing without physical cameras). You can also add/remove
 cameras later from the dashboard itself, without restarting the server.
 
+For multiple classroom CCTV cameras, use one fixed name and RTSP URL per
+camera. Connect the cameras to the same network as the backend computer,
+enable RTSP on each camera, and test each URL in VLC first. The dashboard's
+**Add Camera** dialog can test an RTSP URL before adding it. Cameras added
+from the dashboard are saved to `backend/config.json` and restored after a
+backend restart. A PoE switch is recommended for wired IP cameras; an NVR is
+optional.
+
 ## 3. Run the backend (serves the API + the dashboard)
 
 ```bash
