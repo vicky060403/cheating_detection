@@ -19,13 +19,11 @@ ENV/
 *.key
 
 # --- Model weights & training artifacts ---
-# (Removed *.pt, runs/, and weights/ so model files can be tracked via Git LFS)
 *.onnx
 *.engine
 *.torchscript
 
 # --- Roboflow dataset downloads ---
-# (Removed Graduation-Project-*/ so your dataset folder can be added)
 Cheating-Detection-*/
 Exam-cheating-*/
 *.roboflow.cache
