@@ -14,7 +14,10 @@ Endpoints:
   GET  /                    -> the frontend dashboard (static files)
 
 Run with:
-    uvicorn main:app --host 0.0.0.0 --port 8000
+    uvicorn main:app --reload --host 127.0.0.1 --port 8000
+
+Runs on:
+    http://127.0.0.1:8000
 """
 
 import os
