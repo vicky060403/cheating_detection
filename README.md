@@ -46,6 +46,8 @@ Edit `backend/config.json`:
   "consecutive_frames_to_confirm": 5,
   "alert_cooldown_seconds": 10,
   "frame_width": 640,
+  "inference_imgsz": 416,
+  "inference_stride": 2,
   "cameras": {
     "Camera-1": 0,
     "Camera-2": "rtsp://user:pass@192.168.1.11:554/stream1",
@@ -53,6 +55,11 @@ Edit `backend/config.json`:
   }
 }
 ```
+
+`inference_imgsz` controls the YOLO inference resolution. Lower values are
+faster but can reduce detection accuracy. `inference_stride` runs detection
+every Nth captured frame while keeping the latest boxes visible between
+inferences; `1` processes every frame.
 
 Sources can be a webcam index, an RTSP/IP camera URL, or a video file path
 (useful for testing without physical cameras). You can also add/remove

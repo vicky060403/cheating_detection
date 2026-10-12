@@ -17,10 +17,17 @@ from ultralytics import YOLO
 from pathlib import Path
 
 # configurable parameters for training
+!pip install roboflow
 
-ROBOFLOW_WORKSPACE = "omars-workspace-opfmx"
-ROBOFLOW_PROJECT = "graduation-project-jewvv"
-ROBOFLOW_VERSION = 5
+from roboflow import Roboflow
+rf = Roboflow(api_key="gjKVBCgxMs96rtY9kfbZ")
+project = rf.workspace("hieu-workspace").project("giam_sat_gian_lan")
+version = project.version(2)
+dataset = version.download("yolov11")
+
+ROBOFLOW_WORKSPACE = "hieu-workspace"
+ROBOFLOW_PROJECT = "giam_sat_gian_lan"
+ROBOFLOW_VERSION = 2
 DATASET_FORMAT = "yolov11"
 
 BASE_MODEL = "yolo11m.pt"
@@ -45,8 +52,8 @@ AUGMENTATION = dict(
     close_mosaic=15,   # disable mosaic for the last N epochs to sharpen boxes
 )
 
-PROJECT_DIR = os.environ.get("TRAIN_OUTPUT_DIR", "runs_cheating_detection")
-RUN_NAME = "yolo11l_v5"
+PROJECT_DIR = os.environ.get("TRAIN_OUTPUT_DIR", "runs_cheating_detection2")
+RUN_NAME = "yolo11m_v5"
 
 
 ## check if GPU is available and print its name

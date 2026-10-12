@@ -1,15 +1,18 @@
 {
-  "model_path": "C:\\Users\\ASUS\\cheating_detection_app\\runs\\detect\\runs_cheating_detection\\yolo11l_v5-2\\weights\\best.pt",
+  "model_path": "C:\\Users\\ASUS\\OneDrive\\Desktop\\final_year_project\\cheating_detection\\runs\\detect\\runs_cheating_detection\\yolo11l_v5-2\\weights\\best.pt",
   "cheating_class_name": "Cheating",
   "conf_threshold": 0.45,
   "iou_threshold": 0.5,
   "consecutive_frames_to_confirm": 5,
   "alert_cooldown_seconds": 10,
   "frame_width": 640,
+  "inference_imgsz": 416,
+  "inference_stride": 2,
   "cameras": {
-    "Camera-1": "C:\\Users\\ASUS\\cheating_detection_app\\backend\\videos\\exam.mp4"
+    "Camera-1": "C:\\Users\\ASUS\\OneDrive\\Desktop\\final_year_project\\cheating_detection\\backend\\videos\\test2.mp4",
+    "webcam": 0
   },
-  "snapshot_dir": "C:\\Users\\ASUS\\cheating_detection_app\\backend\\cheating_alerts\\snapshots",
-  "log_file": "C:\\Users\\ASUS\\cheating_detection_app\\backend\\cheating_alerts\\cheating_log.csv",
-  "database_file": "C:\\Users\\ASUS\\cheating_detection_app\\backend\\cheating_alerts\\alerts.db"
+  "snapshot_dir": "C:\\Users\\ASUS\\OneDrive\\Desktop\\final_year_project\\cheating_detection\\backend\\cheating_alerts\\snapshots",
+  "log_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\final_year_project\\cheating_detection\\backend\\cheating_alerts\\cheating_log.csv",
+  "database_file": "C:\\Users\\ASUS\\OneDrive\\Desktop\\final_year_project\\cheating_detection\\backend\\cheating_alerts\\alerts.db"
 }
