@@ -17,13 +17,6 @@ from ultralytics import YOLO
 from pathlib import Path
 
 # configurable parameters for training
-!pip install roboflow
-
-from roboflow import Roboflow
-rf = Roboflow(api_key="gjKVBCgxMs96rtY9kfbZ")
-project = rf.workspace("hieu-workspace").project("giam_sat_gian_lan")
-version = project.version(2)
-dataset = version.download("yolov11")
 
 ROBOFLOW_WORKSPACE = "hieu-workspace"
 ROBOFLOW_PROJECT = "giam_sat_gian_lan"
